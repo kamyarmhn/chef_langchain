@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  chat:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_HOST=ollama
+      - SERVICE=chat
+    depends_on:
+      - ollama
+    volumes:
+      - ./data:/app/data
+      - ./rag_system:/app/rag_system
+    networks:
+      - chef-network
+
+  admin:
+    build: .
+    ports:
+      - "8504:8504"
+    environment:
+      - OLLAMA_HOST=ollama
+      - SERVICE=admin
+    depends_on:
+      - ollama
+    volumes:
+      - ./data:/app/data
+      - ./rag_system:/app/rag_system
+    networks:
+      - chef-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - chef-network
+
+volumes:
+  ollama_data:
+
+networks:
+  chef-network:
+    driver: bridge 
